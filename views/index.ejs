@@ -1,0 +1,84 @@
+<html>
+<head>
+<title></title>
+    
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type ="text/javascript">
+        $(document).ready(function (){
+            // this triggers the connection event in our server!
+            var socket = io.connect();
+            // we'll write all the socket stuff after the above line!
+            function makeid() {
+                var text = "";
+                var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                for( var i=0; i < 10; i++ )
+                    text += possible.charAt(Math.floor(Math.random() * possible.length));
+                return text;
+            };
+            var id = makeid();
+            var name = window.prompt("What's you name? You need one to chat.","");
+            $('#chat').keyup(function(e){
+                if(e.keyCode == 13)
+                {
+                    $('button').click();
+                }
+            });
+            $('button').click(function (){
+                if(name.length > 0){
+                    socket.emit("button_clicked", {content: $('#chat').val(), id: id, name: name});
+                } else {
+                     name = window.prompt("You gotta have a name to chat. Don\'t worry, you can make one up.","");
+                }   
+            });
+            socket.on('chat_response', function (data){
+                var date = new Date().toLocaleTimeString();
+                if(data.id == id) {
+                    var textItemClass = "you";
+                } else {
+                    var textItemClass = "them";
+                }
+                $('#chatList').append("<li class='" + textItemClass + "'><span class = 'info'> At " + date + " | " + data.name + " wrote: </span>" + data.content + "</li>")
+            });
+            socket.on('server_response', function (data){
+                console.log('The server says: ' + data.response);
+            });
+        })
+    </script>
+    <!-- temporary on-page styling -->
+    <style type="text/css">
+        #chatText{
+            border: 1px solid grey;
+            height: 300px;
+            width: 500px;
+            padding-top: 10px;
+        }
+        .chatList{
+            padding:1px;
+        }
+        .you {
+            color: blue;
+            list-style: none;
+        }
+        .them {
+            color: red;
+            list-style: none;
+        }
+        .info {
+            color: black;
+            font-size: 12px;
+        }
+
+
+    </style>
+</head>
+<body>
+    <button>Chat</button>
+    <input type="text" id="chat">
+    <div id="chatText">
+        <ul id="chatList">
+            
+        </ul>
+    </div>
+</body>
+</html><br>
