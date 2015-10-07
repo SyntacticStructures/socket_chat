@@ -34,11 +34,13 @@ io.sockets.on('connection', function (socket) {
   // If you don't know where this code is supposed to go reread the above info 
 socket.on("posting_form", function (data){
 	console.log(data);
-
 	io.emit("server_response", {data:data});
 })
 socket.on("button_clicked", function(data){
 	io.emit("chat_response", data);
+})
+socket.on("message_deleted", function(data){
+	io.emit("delete_message", data);
 })
   //all the socket code goes in here!
 })

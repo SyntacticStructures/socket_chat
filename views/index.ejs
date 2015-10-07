@@ -1,10 +1,10 @@
 <html>
 <head>
 <title></title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
     <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type ="text/javascript">
@@ -58,12 +58,23 @@
                     } 
                 }
             });
+            // delete the selected message on click
+            $(document).on('click', '.deleteButton', function(){
+                var deleteID = $(event.target).parent().parent().parent().attr('id');
+                socket.emit("message_deleted", {id: deleteID});
+            })
+            socket.on('delete_message', function(data){
+                console.log('here', data);
+                var messageToDelete = document.getElementById(data.id)
+                $('#' + data.id).fadeOut(800, function(){
+                    $('#' + data.id).remove();
+                });
+            })
             socket.on('chat_response', function (data){
                 console.log('res');
                 var date = new Date().toLocaleTimeString();
-                var deleteButton = "<div class='col-xs-3' id='poop'><a><img src='https://cdn0.iconfinder.com/data/icons/round-ui-icons/128/close_red.png' height='10%'></a></div>"
                 if(data.id == id && name) {
-                    $('#chatList').append("<li id=" + "'" + data.message_id +"'  class='list-group-item active col-xs-12'><span class = 'info'> At " + date + " | " + data.name + " wrote: </span></br>" + data.content + "<span><a class='poop'><img src='https://cdn0.iconfinder.com/data/icons/round-ui-icons/128/close_red.png'></a></span></li>")
+                    $('#chatList').append("<li id=" + "'" + data.message_id +"'  class='list-group-item active col-xs-12'><span class='info'> At " + date + " | " + data.name + " wrote: </span><span><a class='deleteButton'><img src='https://cdn0.iconfinder.com/data/icons/round-ui-icons/128/close_red.png'></a></span></br>" + data.content + "</li>")
                 } else {
                     $('#chatList').append("<li id=" + "'" + data.message_id +"'  class='list-group-item danger col-xs-12'><span class = 'info'> At " + date + " | " + data.name + " wrote: </span></br>" + data.content + "</li>")
                 }
@@ -107,9 +118,9 @@
             height: 80%;
         }
         a img{
-            margin-left: 80%;
+            margin-left: 93%;
             height: 5%;
-            vertical-align: top;
+
             cursor: pointer;
         }
     </style>
