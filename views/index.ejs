@@ -2,15 +2,22 @@
 <head>
 <title></title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
     <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type ="text/javascript">
+
         $(document).ready(function (){
             // this triggers the connection event in our server!
             var socket = io.connect();
+            var count = 0;
+            $('.well').hide();
+            $('#chat').val("");
+            $('#mainChat').hide();
             // we'll write all the socket stuff after the above line!
-            function makeid() {
+            function makeId() {
                 var text = "";
                 var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
                 for( var i=0; i < 10; i++ )
@@ -19,42 +26,47 @@
             };
             function displayName(elem, name){
                 elem.hide();
-                elem.html("Welcome " + name);
+                elem.html(name);
                 elem.fadeIn();
             };
-            var id = makeid();
+            var id = makeId();
             var name = window.prompt("What's you name? You need one to chat.","");
             if (name){
-                console.log(name);
-                displayName($('#name'),name);
+                displayName($('#name'),"Welcome " + name);
             }
             $('#chat').keyup(function(e){
-                if(e.keyCode == 13)
-                {
-                    if(name.length > 0){
-                        socket.emit("button_clicked", {content: $('#chat').val(), id: id, name: name});
-                        $('#addon').remove();
-                        $('#chat').removeAttr("aria-describedby");
-                        $('#name').hide();
-                        $('#chat').unwrap();
-                        displayName($('#topName'), name.replace("Welcome ", ""));
-
+                if(e.keyCode == 13){
+                    if(name.length > 1){
+                        message_id = makeId();
+                        socket.emit("button_clicked", {content: $('#chat').val(),message_id: message_id, id: id, name: name});
+                        if(count == 0){
+                            $('#addon').remove();
+                            $('#chat').removeAttr("aria-describedby");
+                            $('#name').hide();
+                            $('#chat').appendTo($('#mainChat'))
+                            displayName($('#topName'), name);
+                            $('.well').fadeIn();
+                            $('#mainChat').fadeIn();
+                            count +=1;
+                        }
+                        $('#chat').val('');
                     } else {
                      name = window.prompt("You gotta have a name to chat. Don\'t worry, you can make one up.","");
                          if(name){
-                            displayName(name);
+                            displayName($('#name'),name);
                          }
                     } 
                 }
             });
             socket.on('chat_response', function (data){
+                console.log('res');
                 var date = new Date().toLocaleTimeString();
-                if(data.id == id) {
-                    var textItemClass = "list-group-item active";
+                var deleteButton = "<div class='col-xs-3' id='poop'><a><img src='https://cdn0.iconfinder.com/data/icons/round-ui-icons/128/close_red.png' height='10%'></a></div>"
+                if(data.id == id && name) {
+                    $('#chatList').append("<li id=" + "'" + data.message_id +"'  class='list-group-item active col-xs-12'><span class = 'info'> At " + date + " | " + data.name + " wrote: </span></br>" + data.content + "<span><a class='poop'><img src='https://cdn0.iconfinder.com/data/icons/round-ui-icons/128/close_red.png'></a></span></li>")
                 } else {
-                    var textItemClass = "list-group-item caution";
+                    $('#chatList').append("<li id=" + "'" + data.message_id +"'  class='list-group-item danger col-xs-12'><span class = 'info'> At " + date + " | " + data.name + " wrote: </span></br>" + data.content + "</li>")
                 }
-                $('#chatList').append("<li id='chatItem' class='" + textItemClass + "'><span class = 'info'> At " + date + " | " + data.name + " wrote: </span></br>" + data.content + "</li>")
             });
             socket.on('server_response', function (data){
                 console.log('The server says: ' + data.response);
@@ -66,29 +78,56 @@
         #chatList {
              margin-top: 15px;
         }
-        #chatItem{
-            margin-top: 3px;
+        li{
+            margin-top: 10px;
         }
         .info {
             color: lightgrey;
+        }
+        .list-group-item{
+            color: white;
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+        /*here i'll just copy bootstrap's 'active' list gorup one and make it red*/
+        .list-group-item.danger,
+        .list-group-item.danger:hover,
+        .list-group-item.danger:focus {
+            text-shadow: 0 -1px 0 #286090;
+            background-image: -webkit-linear-gradient(top, #db5236 0%, #d34b00 100%);
+            background-image:      -o-linear-gradient(top, #db5236 0%, #d34b00 100%);
+            background-image: -webkit-gradient(linear, left top, left bottom, from(#337ab7), to(#d34b00));
+            background-image:         linear-gradient(to bottom, #db5236 0%, #d34b00 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffdb5236', endColorstr='#ffd34b00', GradientType=0);
+            background-repeat: repeat-x;
+            border-color: #2b669a;
+        }
+        .well {
+            overflow: scroll;
+            height: 80%;
+        }
+        a img{
+            margin-left: 80%;
+            height: 5%;
+            vertical-align: top;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="col-xs-12">
+        <div class="col-xs-12 col-md-offset-2">
+            <div class="col-xs-12 col-md-6">
                 <div class="row">
                     <div class="col-xs-12">
                         <h2 id="topName"></h2>
                     <div>
                 </div>
-                <div class="row">
+                <div id="topChat" class="row">
                     <div class="col-xs-12">
                         <div class="input-group">
                             <span class="input-group-addon" id="addon">ask who's there</span>
-                            
-                                <input type="text" class="form-control" id="chat" aria-describedby="addon">
+                            <input type="text" class="form-control" id="chat" aria-describedby="addon">
                         </div>
                     <div>
                 </div>
@@ -97,12 +136,20 @@
                         <h2 id="name"></h2>
                     <div>
                 </div>
-                <div class="row" id="chatBox">
+                <div class="row">
                     <div class="col-xs-12">
-                        <ul id="chatList" class="list-group" >
-                            
-                        </ul>
+                        <div class="well">
+                            <div id="chatBox">
+                                <div class="col-xs-12">
+                                    <ul id="chatList" class="list-group">     
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+                <div id="mainChat">
+                    
                 </div>
             </div>
         </div>
