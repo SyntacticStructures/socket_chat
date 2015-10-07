@@ -1,8 +1,9 @@
 <html>
 <head>
 <title></title>
-    
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
     <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type ="text/javascript">
         $(document).ready(function (){
@@ -16,69 +17,95 @@
                     text += possible.charAt(Math.floor(Math.random() * possible.length));
                 return text;
             };
+            function displayName(elem, name){
+                elem.hide();
+                elem.html("Welcome " + name);
+                elem.fadeIn();
+            };
             var id = makeid();
             var name = window.prompt("What's you name? You need one to chat.","");
+            if (name){
+                console.log(name);
+                displayName($('#name'),name);
+            }
             $('#chat').keyup(function(e){
                 if(e.keyCode == 13)
                 {
-                    $('button').click();
-                }
-            });
-            $('button').click(function (){
-                if(name.length > 0){
-                    socket.emit("button_clicked", {content: $('#chat').val(), id: id, name: name});
-                } else {
+                    if(name.length > 0){
+                        socket.emit("button_clicked", {content: $('#chat').val(), id: id, name: name});
+                        $('#addon').remove();
+                        $('#chat').removeAttr("aria-describedby");
+                        $('#name').hide();
+                        $('#chat').unwrap();
+                        displayName($('#topName'), name.replace("Welcome ", ""));
+
+                    } else {
                      name = window.prompt("You gotta have a name to chat. Don\'t worry, you can make one up.","");
-                }   
+                         if(name){
+                            displayName(name);
+                         }
+                    } 
+                }
             });
             socket.on('chat_response', function (data){
                 var date = new Date().toLocaleTimeString();
                 if(data.id == id) {
-                    var textItemClass = "you";
+                    var textItemClass = "list-group-item active";
                 } else {
-                    var textItemClass = "them";
+                    var textItemClass = "list-group-item caution";
                 }
-                $('#chatList').append("<li class='" + textItemClass + "'><span class = 'info'> At " + date + " | " + data.name + " wrote: </span>" + data.content + "</li>")
+                $('#chatList').append("<li id='chatItem' class='" + textItemClass + "'><span class = 'info'> At " + date + " | " + data.name + " wrote: </span></br>" + data.content + "</li>")
             });
             socket.on('server_response', function (data){
                 console.log('The server says: ' + data.response);
             });
         })
     </script>
-    <!-- temporary on-page styling -->
+    <!-- I know this styling should not be here, but it's only one line right now. I'll modularize if it becomes anything significant. -->
     <style type="text/css">
-        #chatText{
-            border: 1px solid grey;
-            height: 300px;
-            width: 500px;
-            padding-top: 10px;
+        #chatList {
+             margin-top: 15px;
         }
-        .chatList{
-            padding:1px;
-        }
-        .you {
-            color: blue;
-            list-style: none;
-        }
-        .them {
-            color: red;
-            list-style: none;
+        #chatItem{
+            margin-top: 3px;
         }
         .info {
-            color: black;
-            font-size: 12px;
+            color: lightgrey;
         }
-
-
     </style>
 </head>
 <body>
-    <button>Chat</button>
-    <input type="text" id="chat">
-    <div id="chatText">
-        <ul id="chatList">
-            
-        </ul>
+    <div class="container">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="col-xs-12">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <h2 id="topName"></h2>
+                    <div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="input-group">
+                            <span class="input-group-addon" id="addon">ask who's there</span>
+                            
+                                <input type="text" class="form-control" id="chat" aria-describedby="addon">
+                        </div>
+                    <div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <h2 id="name"></h2>
+                    <div>
+                </div>
+                <div class="row" id="chatBox">
+                    <div class="col-xs-12">
+                        <ul id="chatList" class="list-group" >
+                            
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
-</html><br>
+</html>
