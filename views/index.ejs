@@ -75,7 +75,6 @@
             socket.on('chat_response', function (data){
                 console.log('res');
                 var date = new Date().toLocaleTimeString();
-                // why is it there no jquery date formatter better than this??. ok i'll just fix it this way;
                 date = date.slice(0,date.length-6);
                 if(data.id == id && name) {
                     $('#chatList').append("<li id=" + "'" + data.message_id +"'  class='list-group-item active col-xs-12'><span class='info'> At " + date + "  |  " + data.name + " wrote: </span><span><a class='deleteButton'><img src='https://cdn0.iconfinder.com/data/icons/round-ui-icons/128/close_red.png'></a></span></br>" + data.content + "</li>")
@@ -88,7 +87,6 @@
             });
         })
     </script>
-    <!-- I know this styling should not be here, but it's only one line right now. I'll modularize if it becomes anything significant. -->
     <style type="text/css">
         #chatList {
              margin-top: 15px;
@@ -105,7 +103,6 @@
             font-size: 1.1em;
             font-weight: 700;
         }
-        /*here i'll just copy bootstrap's 'active' list gorup one and make it red*/
         .list-group-item.danger,
         .list-group-item.danger:hover,
         .list-group-item.danger:focus {
